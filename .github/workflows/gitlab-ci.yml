@@ -1,0 +1,30 @@
+stages:
+    - archiving
+    - deploy
+
+archive:
+    stage: archiving
+    only:
+        - main
+    image: ubuntu
+    when:
+        on_success
+    before_script:
+        - apt-get update
+        - apt-get install zip -y
+    script:
+        - zip -g $CI_PROJECT_NAME.zip lambda_function.py
+    artifacts:
+        paths:
+        - $CI_PROJECT_NAME.zip
+
+deploy:
+    stage: deploy
+    image:
+        name: amazon/aws-cli
+        entrypoint: [""]
+    script:
+        - aws --version
+        - aws configure set region us-west-1
+        - aws lambda update-function-code --function-name lambda_hello-world --zip-file fileb://$CI_PROJECT_NAME.zip
+
